@@ -7,6 +7,11 @@
 # Misc
 .DS_Store
 .claude
+*.pyc
+__pycache__/
+.pytest_cache/
+tools/trade_feed_validator/valid_feed.csv
+tools/trade_feed_validator/dlq_feed.json
 
 # Node
 node_modules
