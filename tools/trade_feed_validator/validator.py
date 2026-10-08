@@ -1,8 +1,8 @@
 import argparse
 import csv
 import json
-import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 TIME_FORMAT = "%H:%M:%S"
@@ -19,8 +19,8 @@ def parse_time(time_str: str):
 
 class TradeFeedValidator:
     def __init__(self):
-        self.seen_tx_hashes = set()
         self.seen_event_ids = set()
+        self.seen_tx_hashes = set()
 
     def process_csv(self, file_path: str) -> Tuple[List[Dict], List[Dict]]:
         valid_records = []
@@ -29,10 +29,19 @@ class TradeFeedValidator:
         with open(file_path, mode="r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                event_id = row["event_id"].strip()
-                tx_hash = row["tx_hash"].strip()
-                block_time_str = row["block_time"].strip()
-                ingested_at_str = row["ingested_at"].strip()
+                event_id = row.get("event_id", "").strip() if row.get("event_id") else ""
+                tx_hash = row.get("tx_hash", "").strip() if row.get("tx_hash") else ""
+                block_time_str = row.get("block_time", "").strip() if row.get("block_time") else ""
+                ingested_at_str = row.get("ingested_at", "").strip() if row.get("ingested_at") else ""
+
+                if not event_id or not tx_hash:
+                    dlq_records.append({
+                        "event_id": event_id,
+                        "tx_hash": tx_hash,
+                        "reason": "MISSING_REQUIRED_FIELDS",
+                        "raw_data": row
+                    })
+                    continue
 
                 if event_id in self.seen_event_ids:
                     dlq_records.append({
@@ -47,17 +56,18 @@ class TradeFeedValidator:
                     dlq_records.append({
                         "event_id": event_id,
                         "tx_hash": tx_hash,
-                        "reason": "DUPLICATE_TRANSACTION_HASH",
+                        "reason": "DUPLICATE_TX_HASH",
                         "raw_data": row
                     })
                     continue
 
                 block_time = parse_time(block_time_str)
                 if block_time is None:
+                    reason = "MISSING_BLOCK_TIME" if not block_time_str or block_time_str.lower() == "null" else "INVALID_BLOCK_TIME"
                     dlq_records.append({
                         "event_id": event_id,
                         "tx_hash": tx_hash,
-                        "reason": "MISSING_BLOCK_TIME",
+                        "reason": reason,
                         "raw_data": row
                     })
                     continue
@@ -67,7 +77,7 @@ class TradeFeedValidator:
                     dlq_records.append({
                         "event_id": event_id,
                         "tx_hash": tx_hash,
-                        "reason": "INVALID_INGESTED_AT_TIME",
+                        "reason": "INVALID_INGESTION_TIME",
                         "raw_data": row
                     })
                     continue
@@ -89,8 +99,9 @@ class TradeFeedValidator:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Trade Feed Data Quality Validator")
-    parser.add_argument("--input", default="sample_feed.csv", help="Input CSV file path")
+    default_input = str(Path(__file__).resolve().with_name("sample_feed.csv"))
+    parser = argparse.ArgumentParser(description="Trade Feed Validator")
+    parser.add_argument("--input", default=default_input, help="Input CSV file path")
     parser.add_argument("--valid-out", default="valid_feed.csv", help="Output path for valid CSV records")
     parser.add_argument("--dlq-out", default="dlq_feed.json", help="Output path for DLQ JSON records")
 
@@ -99,19 +110,17 @@ def main():
     validator = TradeFeedValidator()
     valid, dlq = validator.process_csv(args.input)
 
-    if valid:
-        fieldnames = valid[0].keys()
-        with open(args.valid_out, mode="w", encoding="utf-8", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
+    fieldnames = valid[0].keys() if valid else ["event_id", "tx_hash", "block_time", "wallet", "side", "amount", "ingested_at"]
+    with open(args.valid_out, mode="w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        if valid:
             writer.writerows(valid)
 
     with open(args.dlq_out, mode="w", encoding="utf-8") as f:
         json.dump(dlq, f, indent=2)
 
-    print(f"=== Trade Feed Validation Results ===")
-    print(f"Valid Records: {len(valid)} -> Saved to '{args.valid_out}'")
-    print(f"DLQ Records:   {len(dlq)} -> Saved to '{args.dlq_out}'\n")
+    print(f"Processing complete. Valid records: {len(valid)}, DLQ records: {len(dlq)}")
 
 
 if __name__ == "__main__":
