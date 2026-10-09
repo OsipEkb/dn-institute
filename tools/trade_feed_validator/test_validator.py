@@ -67,3 +67,16 @@ def test_time_inversion(tmp_path):
     assert len(valid) == 0
     assert len(dlq) == 1
     assert dlq[0]["reason"] == "TIME_INVERSION_INGESTED_BEFORE_BLOCK"
+
+
+def test_invalid_block_time_format(tmp_path):
+    csv_file = tmp_path / "test.csv"
+    csv_file.write_text(
+        "event_id,tx_hash,block_time,wallet,side,amount,ingested_at\n"
+        "evt_009,0xaa7,9:5:3,0xF6,BUY,90000,09:59:50\n"
+    )
+    validator = TradeFeedValidator()
+    valid, dlq = validator.process_csv(str(csv_file))
+    assert len(valid) == 0
+    assert len(dlq) == 1
+    assert dlq[0]["reason"] == "INVALID_BLOCK_TIME"

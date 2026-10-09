@@ -11,8 +11,11 @@ TIME_FORMAT = "%H:%M:%S"
 def parse_time(time_str: str):
     if not time_str or time_str.strip().lower() == "null":
         return None
+    val = time_str.strip()
+    if len(val) != 8:
+        return None
     try:
-        return datetime.strptime(time_str.strip(), TIME_FORMAT)
+        return datetime.strptime(val, TIME_FORMAT)
     except ValueError:
         return None
 
