@@ -1,0 +1,58 @@
+[
+  {
+    "event_id": "evt_003",
+    "tx_hash": "0xaa2",
+    "reason": "DUPLICATE_TX_HASH",
+    "raw_data": {
+      "event_id": "evt_003",
+      "tx_hash": "0xaa2",
+      "block_time": "09:41:20",
+      "wallet": "0xD41",
+      "side": "BUY",
+      "amount": "120000",
+      "ingested_at": "09:44:01"
+    }
+  },
+  {
+    "event_id": "evt_005",
+    "tx_hash": "0xaa4",
+    "reason": "MISSING_BLOCK_TIME",
+    "raw_data": {
+      "event_id": "evt_005",
+      "tx_hash": "0xaa4",
+      "block_time": "null",
+      "wallet": "0xE52",
+      "side": "SELL",
+      "amount": "30000",
+      "ingested_at": "09:58:30"
+    }
+  },
+  {
+    "event_id": "evt_007",
+    "tx_hash": "0xaa5",
+    "reason": "DUPLICATE_TX_HASH",
+    "raw_data": {
+      "event_id": "evt_007",
+      "tx_hash": "0xaa5",
+      "block_time": "10:03:11",
+      "wallet": "0xF63",
+      "side": "BUY",
+      "amount": "90000",
+      "ingested_at": "10:03:15"
+    }
+  },
+  {
+    "event_id": "evt_008",
+    "tx_hash": "0xaa6",
+    "reason": "TIME_INVERSION_INGESTED_BEFORE_BLOCK",
+    "raw_data": {
+      "event_id": "evt_008",
+      "tx_hash": "0xaa6",
+      "block_time": "10:10:00",
+      "wallet": "0xF63",
+      "side": "SELL",
+      "amount": "90000",
+      "ingested_at": "09:59:50"
+    }
+  }
+]
