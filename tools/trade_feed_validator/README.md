@@ -13,8 +13,8 @@ An automated data-quality validation pipeline designed to screen blockchain trad
 
 ## Execution Architecture & Routing Strategy
 
-- **Valid Records (`valid_feed.csv`):** Fully compliant trades meeting schema and deduplication rules are preserved. Output file is always truncated/created per run.
-- **Dead-Letter Queue (`dlq_feed.json`):** Rejected rows are isolated into a DLQ payload containing standard taxonomy codes (`DUPLICATE_EVENT_ID`, `DUPLICATE_TX_HASH`, `MISSING_BLOCK_TIME`, `INVALID_BLOCK_TIME`, `TIME_INVERSION_INGESTED_BEFORE_BLOCK`) along with raw original data.
+- **Valid Records (`valid_feed.csv`):** Fully compliant trades meeting schema and deduplication rules are preserved. Output file is always created or truncated per execution run.
+- **Dead-Letter Queue (`dlq_feed.json`):** Rejected rows are isolated into a DLQ payload containing standard taxonomy codes (`MISSING_REQUIRED_FIELDS`, `DUPLICATE_EVENT_ID`, `DUPLICATE_TX_HASH`, `MISSING_BLOCK_TIME`, `INVALID_BLOCK_TIME`, `INVALID_INGESTION_TIME`, `TIME_INVERSION_INGESTED_BEFORE_BLOCK`) along with raw original data.
 
 ## Setup & Running
 

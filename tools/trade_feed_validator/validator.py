@@ -35,9 +35,12 @@ class TradeFeedValidator:
                 event_id = row.get("event_id", "").strip() if row.get("event_id") else ""
                 tx_hash = row.get("tx_hash", "").strip() if row.get("tx_hash") else ""
                 block_time_str = row.get("block_time", "").strip() if row.get("block_time") else ""
+                wallet = row.get("wallet", "").strip() if row.get("wallet") else ""
+                side = row.get("side", "").strip() if row.get("side") else ""
+                amount = row.get("amount", "").strip() if row.get("amount") else ""
                 ingested_at_str = row.get("ingested_at", "").strip() if row.get("ingested_at") else ""
 
-                if not event_id or not tx_hash:
+                if not all([event_id, tx_hash, wallet, side, amount]):
                     dlq_records.append({
                         "event_id": event_id,
                         "tx_hash": tx_hash,
@@ -103,11 +106,15 @@ class TradeFeedValidator:
 
 
 def main():
-    default_input = str(Path(__file__).resolve().with_name("sample_feed.csv"))
+    base_dir = Path(__file__).resolve().parent
+    default_input = str(base_dir / "sample_feed.csv")
+    default_valid_out = str(base_dir / "valid_feed.csv")
+    default_dlq_out = str(base_dir / "dlq_feed.json")
+
     parser = argparse.ArgumentParser(description="Trade Feed Validator")
     parser.add_argument("--input", default=default_input, help="Input CSV file path")
-    parser.add_argument("--valid-out", default="valid_feed.csv", help="Output path for valid CSV records")
-    parser.add_argument("--dlq-out", default="dlq_feed.json", help="Output path for DLQ JSON records")
+    parser.add_argument("--valid-out", default=default_valid_out, help="Output path for valid CSV records")
+    parser.add_argument("--dlq-out", default=default_dlq_out, help="Output path for DLQ JSON records")
 
     args = parser.parse_args()
 
