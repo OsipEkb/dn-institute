@@ -64,6 +64,9 @@ class TradeFeedValidator:
                     })
                     continue
 
+                self.seen_event_ids.add(event_id)
+                self.seen_tx_hashes.add(tx_hash)
+
                 block_time = parse_time(block_time_str)
                 if block_time is None:
                     reason = "MISSING_BLOCK_TIME" if not block_time_str or block_time_str.lower() == "null" else "INVALID_BLOCK_TIME"
@@ -94,8 +97,6 @@ class TradeFeedValidator:
                     })
                     continue
 
-                self.seen_event_ids.add(event_id)
-                self.seen_tx_hashes.add(tx_hash)
                 valid_records.append(row)
 
         return valid_records, dlq_records
